@@ -81,6 +81,8 @@ function playNextTrack() {
     next.play();
 }
 
+const lastSoft = {}; // when each soft sound last played
+
 export const sfx = {
     // Must be called directly inside a click/tap handler
     enable() {
@@ -113,6 +115,18 @@ export const sfx = {
     play(name, part) {
         if (!enabled || !sounds[name]) return; // skips sounds you haven't added yet
         sounds[name].play(part);
+    },
+
+    // A quieter, "background" version of a sound for things moving on the page.
+    // The same sound won't repeat within `gap` ms, so fast scrolling never piles them up.
+    soft(name, volume = 0.3, gap = 150) {
+        if (!enabled || !sounds[name]) return;
+        const now = performance.now();
+        if (now - (lastSoft[name] || 0) < gap) return;
+        lastSoft[name] = now;
+        const s = sounds[name];
+        const id = s.play();
+        s.volume(s.volume() * volume, id); // only this play is quieter
     },
 
     // Fade a sound out and stop it (used to end the spin sound at the pop)

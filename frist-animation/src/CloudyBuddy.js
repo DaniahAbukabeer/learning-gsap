@@ -2,13 +2,14 @@ import { useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { useGSAP } from '@gsap/react';
 import Cloudy from './Cloudy';
+import { sfx } from './sfx';
 
 // CloudyBuddy.js: Cloudy hops off the page and follows your cursor (desktop only).
 //
 // He's controlled with two window events (sent by the Meet Cloudy section):
 //   'cloudy:takeoff'  detail: the DOMRect of the Cloudy he takes off from
-//   'cloudy:land'     detail: { getRect } - a function returning where to land
-// When he's landed he sends 'cloudy:landed'.
+//   'cloudy:land'     detail: { id, getRect } - who's calling, and where to land
+// When he's landed he sends 'cloudy:landed' with the same id.
 //
 // While following you he changes mood: jumping when you hover something clickable,
 // whistling if you stop moving for a while, sad if your mouse leaves the window.
@@ -33,6 +34,7 @@ export default function CloudyBuddy() {
 
         let mode = 'off';            // 'off' | 'flying' | 'landing'
         let landRect = null;          // function: where to land
+        let landId = null;            // who asked him to land
         let mx = window.innerWidth / 2;
         let my = window.innerHeight / 2;
         let idleTimer;
@@ -69,8 +71,9 @@ export default function CloudyBuddy() {
 
             if (mode === 'landing' && Math.abs(tx - pos.x) < 1.5 && Math.abs(ty - pos.y) < 1.5 && Math.abs(ts - pos.s) < 0.01) {
                 mode = 'off';
+                sfx.soft('pop', 0.4);               // ...and down
                 gsap.set(el, { autoAlpha: 0 });
-                window.dispatchEvent(new Event('cloudy:landed'));
+                window.dispatchEvent(new CustomEvent('cloudy:landed', { detail: { id: landId } }));
             }
         };
         gsap.ticker.add(tick);
@@ -93,12 +96,18 @@ export default function CloudyBuddy() {
             mode = 'flying';
             gsap.set(el, { autoAlpha: 1 });
             setMood('jumping');
+            sfx.soft('boing', 0.45);             // up he goes
             gsap.fromTo(hop, { y: 0 }, { keyframes: { y: [-70, 0] }, duration: 0.9, ease: 'power1.inOut' });
             gsap.delayedCall(1, () => { if (mode === 'flying') setMood('happy'); });
         };
         const onLand = (e) => {
-            if (mode === 'off') return;
+            if (mode === 'off') {
+                // he isn't flying (e.g. a very fast scroll): just say he's there
+                window.dispatchEvent(new CustomEvent('cloudy:landed', { detail: { id: e.detail.id } }));
+                return;
+            }
             landRect = e.detail.getRect;
+            landId = e.detail.id;
             mode = 'landing';
             setMood('happy');
             clearTimeout(idleTimer);

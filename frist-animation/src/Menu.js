@@ -1,62 +1,41 @@
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { DISH_ART, PlateTop, ServiceBell } from './MenuArt';
+import { DISH_ART, PlateTop, ServiceBell, Star } from './MenuArt';
 import { sfx } from './sfx';
+import { useLang, DISH_TEXT } from './i18n';
 import './Menu.css';
 
-// DRAFT COPY: the dish names come from your brand guide; descriptions and
-// "ingredients" are first drafts, edit freely.
-export const DISHES = [
-    {
-        key: 'automation',
-        name: 'Automated Systems',
-        desc: 'Workflows that run themselves, so your team can stop copy-pasting and get back to the good stuff.',
-        tags: ['Workflows', 'Integrations', 'Dashboards'],
-    },
-    {
-        key: 'mobile',
-        name: 'Mobile Apps',
-        desc: 'Apps that feel soft in the hand: simple, friendly and a joy to tap through.',
-        tags: ['iOS', 'Android', 'Friendly UI'],
-    },
-    {
-        key: 'landing',
-        name: 'Landing Pages',
-        desc: 'Breathtaking, hand-made first impressions that make visitors stay a little longer.',
-        tags: ['Design', 'Animation', 'Fast'],
-    },
-    {
-        key: 'cms',
-        name: "CMS's",
-        desc: 'Update your own content whenever you like, with no developer on call.',
-        tags: ['Easy editing', 'Your structure', 'Secure'],
-    },
-    {
-        key: 'agents',
-        name: 'Cloudy AI Agents',
-        desc: 'Ethical AI agentic systems tailored to your needs, built to help your team, not replace it.',
-        tags: ['Ethical by design', 'Tailored', 'Friendly'],
-    },
-];
+// The five dishes, in Menu order. Their names, descriptions and "ingredients"
+// (in English and Arabic) live in i18n.js under DISH_TEXT.
+export const DISHES = ['automation', 'mobile', 'landing', 'cms', 'agents'].map((key) => ({ key }));
 
 export default function Menu() {
+    const { t, lang } = useLang();
+    const text = DISH_TEXT[lang];
     return (
         <section className="menu" id="menu">
             <div className="menu-head">
-                <p className="menu-kicker">Today's specials</p>
-                <h2 className="menu-title">The Menu</h2>
+                <p className="menu-kicker">{t('menu.kicker')}</p>
+                <h2 className="menu-title">{t('menu.title')}</h2>
             </div>
 
             {/* The table: a plate in the middle, dishes slide through it */}
             <div className="menu-table">
+                {/* stars twinkling around the plate (they burst when a new dish lands) */}
+                <div className="menu-stars" aria-hidden="true">
+                    <span className="menu-star star-1"><Star kind="five" /></span>
+                    <span className="menu-star star-2"><Star kind="four" /></span>
+                    <span className="menu-star star-3"><Star kind="four" /></span>
+                    <span className="menu-star star-4"><Star kind="five" /></span>
+                </div>
                 <PlateTop />
                 <ul className="menu-track">
                     {DISHES.map((dish, i) => {
                         const Art = DISH_ART[dish.key];
                         return (
                             <li key={dish.key} className="menu-item" style={{ '--i': i }}>
-                                <button className="menu-dish" data-index={i} aria-label={`Show ${dish.name}`}>
-                                    <svg viewBox="100 120 210 185" aria-hidden="true"><Art /></svg>
+                                <button className="menu-dish" data-index={i} aria-label={`${t('menu.show')} ${text[dish.key].name}`}>
+                                    <Art />
                                 </button>
                             </li>
                         );
@@ -68,21 +47,21 @@ export default function Menu() {
             {/* What's on the plate */}
             <div className="menu-info">
                 <div className="menu-count">
-                    <button className="menu-arrow" data-step="-1" aria-label="Previous dish">
+                    <button className="menu-arrow" data-step="-1" aria-label={t('menu.prev')}>
                         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 L8 12 L15 19" /></svg>
                     </button>
                     <span><span className="menu-count-num">01</span> / 0{DISHES.length}</span>
-                    <button className="menu-arrow" data-step="1" aria-label="Next dish">
+                    <button className="menu-arrow" data-step="1" aria-label={t('menu.next')}>
                         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5 L16 12 L9 19" /></svg>
                     </button>
                 </div>
                 <div className="dish-texts">
                     {DISHES.map((dish) => (
                         <div key={dish.key} className="dish-text">
-                            <h3 className="dish-name">{dish.name}</h3>
-                            <p className="dish-desc">{dish.desc}</p>
-                            <ul className="ingredients" aria-label="Ingredients">
-                                {dish.tags.map((tag) => <li key={tag}>{tag}</li>)}
+                            <h3 className="dish-name">{text[dish.key].name}</h3>
+                            <p className="dish-desc">{text[dish.key].desc}</p>
+                            <ul className="ingredients" aria-label={t('menu.ingredients')}>
+                                {text[dish.key].tags.map((tag) => <li key={tag}>{tag}</li>)}
                             </ul>
                         </div>
                     ))}
@@ -133,7 +112,20 @@ export function buildMenuScroll(root, getSmoother) {
         .from(q('.plate .art-fill, .plate-shadow'), { autoAlpha: 0, duration: 0.4 }, 1)
         .from(q('.menu-dish'), { autoAlpha: 0, x: 120, stagger: 0.12, duration: 0.8 }, 0.6)
         .from(q('.service-bell'), { autoAlpha: 0, y: 30, rotation: 12, duration: 0.6 }, 1.2)
+        .fromTo(q('.menu-star .art-line'), { drawSVG: '0%' }, { drawSVG: '100%', duration: 0.6, stagger: 0.1 }, 0.9)
+        .from(q('.menu-star .art-fill'), { autoAlpha: 0, duration: 0.3, stagger: 0.1 }, 1.3)
         .from(q('.menu-count'), { autoAlpha: 0, y: 20, duration: 0.5 }, 1.2);
+
+    // ----- the stars twinkle gently, forever (on the inner svg, so a burst can play on top) -----
+    q('.menu-star .star').forEach((star, i) => {
+        gsap.to(star, {
+            rotation: i % 2 ? -18 : 18, scale: 1.15,
+            duration: 1.4 + i * 0.35, ease: 'sine.inOut', yoyo: true, repeat: -1, delay: i * 0.3,
+        });
+    });
+    const burstStars = () => gsap.fromTo(q('.menu-star'),
+        { scale: 0.3, rotation: -120 },
+        { scale: 1, rotation: 0, duration: 0.7, ease: 'back.out(2.5)', stagger: 0.06, overwrite: true });
 
     // ----- choosing the dish on the plate -----
     let active = -1;
@@ -164,7 +156,8 @@ export function buildMenuScroll(root, getSmoother) {
         // the old dish goes back to a line drawing
         if (prev >= 0) gsap.to(items[prev].querySelectorAll('.art-fill'), { autoAlpha: 0, duration: 0.3, overwrite: true });
 
-        // the new dish re-draws itself, fills with color and does a little hop
+        // the new dish re-draws itself, fills with color and does a little hop (with a puff of steam)
+        if (!quiet) sfx.soft('steam', 0.4, 300);
         const dish = items[i].querySelector('.menu-dish');
         gsap.fromTo(items[i].querySelectorAll('.art-line'), { drawSVG: '0%' },
             { drawSVG: '100%', duration: 0.6, stagger: 0.03, ease: 'power1.inOut', overwrite: true });
@@ -173,7 +166,7 @@ export function buildMenuScroll(root, getSmoother) {
 
         // ding! (only once the dish has actually settled on the plate)
         clearTimeout(bellTimer);
-        if (!quiet) bellTimer = setTimeout(() => { if (active === i) ringBell(); }, BELL_DELAY);
+        if (!quiet) bellTimer = setTimeout(() => { if (active === i) { ringBell(); burstStars(); } }, BELL_DELAY);
     };
 
     // dishes shrink and fade the further they are from the plate
@@ -197,6 +190,7 @@ export function buildMenuScroll(root, getSmoother) {
             start: 'top top',
             end: () => `+=${window.innerHeight * SCROLL_PER_DISH * (n - 1)}`,
             pin: true,
+            refreshPriority: 2, // measured first: everything below depends on how long this pins
             scrub: 0.6,
             invalidateOnRefresh: true,
             onUpdate: (self) => select(Math.round(self.progress * (n - 1))),

@@ -2,46 +2,35 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Cloudy from './Cloudy';
 import { canBuddyFollow } from './CloudyBuddy';
+import { useLang } from './i18n';
 import './MeetCloudy.css';
 
-// The moods shown in the "Cloudy has feelings too" row
-const MOOD_ROW = [
-    ['happy', 'Happy'],
-    ['jumping', 'Excited'],
-    ['whistling', 'Whistling'],
-    ['sideEye', 'Side-eye'],
-    ['confused', 'Confused'],
-    ['weird', 'Unsure'],
-    ['done', 'Done with it'],
-    ['sad', 'Sad'],
-    ['angry', 'Angry'],
-];
+// The moods shown in the "Cloudy has feelings too" row (names are in i18n.js as mood.*)
+const MOOD_ROW = ['happy', 'jumping', 'whistling', 'sideEye', 'confused', 'weird', 'done', 'sad', 'angry'];
 
 export default function MeetCloudy() {
+    const { t } = useLang();
     return (
         <section className="meet-cloudy" id="meet-cloudy">
             <div className="meet-inner">
                 <div className="meet-spot">
-                    <Cloudy mood="happy" label="Cloudy, the Solace mascot" />
+                    <Cloudy mood="happy" label={t('meet.label')} />
                 </div>
                 <div className="meet-text">
-                    <p className="meet-kicker">Meet Cloudy</p>
-                    <h2 className="meet-title">Our lucky charm, and your AI sidekick</h2>
-                    <p className="meet-desc">
-                        Cloudy makes sure every experience with our AI agentic systems feels friendly
-                        and easy to use. Go on, move your mouse around. He's keeping an eye on you.
-                    </p>
-                    <p className="meet-hint">Keep scrolling and he'll tag along.</p>
+                    <p className="meet-kicker">{t('meet.kicker')}</p>
+                    <h2 className="meet-title">{t('meet.title')}</h2>
+                    <p className="meet-desc">{t('meet.desc')}</p>
+                    <p className="meet-hint">{t('meet.hint')}</p>
                 </div>
             </div>
 
             <div className="moods">
-                <p className="moods-title">Cloudy has feelings too</p>
+                <p className="moods-title">{t('meet.moods')}</p>
                 <ul className="moods-row">
-                    {MOOD_ROW.map(([mood, name]) => (
+                    {MOOD_ROW.map((mood) => (
                         <li key={mood} className="mood">
                             <Cloudy mood={mood} />
-                            <span>{name}</span>
+                            <span>{t(`mood.${mood}`)}</span>
                         </li>
                     ))}
                 </ul>
@@ -68,7 +57,7 @@ export function buildMeetCloudyScroll(root) {
     if (!canBuddyFollow()) return () => { };
 
     const spot = q('.meet-spot .cloudy')[0];
-    const onLanded = () => gsap.set(spot, { autoAlpha: 1 });
+    const onLanded = (e) => { if (e.detail?.id === 'meet') gsap.set(spot, { autoAlpha: 1 }); };
     window.addEventListener('cloudy:landed', onLanded);
 
     ScrollTrigger.create({
@@ -80,7 +69,7 @@ export function buildMeetCloudyScroll(root) {
             window.dispatchEvent(new CustomEvent('cloudy:takeoff', { detail: rect }));
         },
         onLeaveBack: () => {
-            window.dispatchEvent(new CustomEvent('cloudy:land', { detail: { getRect: () => spot.getBoundingClientRect() } }));
+            window.dispatchEvent(new CustomEvent('cloudy:land', { detail: { id: 'meet', getRect: () => spot.getBoundingClientRect() } }));
         },
     });
 

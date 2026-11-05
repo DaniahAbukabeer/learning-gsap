@@ -54,7 +54,12 @@ const CLOUDS = {
 
 // `size` scales the cloud. All your clouds use the same 10px line in their own
 // drawing, so the same size makes every cloud's line equally thick on screen.
-export default function Cloud({ name, className = '', side = 'left', size = 0.3 }) {
+// `tone="light"` recolors a cloud for dark-blue backgrounds (the footer):
+// white lines and Light Sky shading, so the blue lines never sit on blue.
+const LIGHT = { line: '#FFFFFF', shade: '#6BBEFF' };
+const recolor = (color, kind, tone) => (tone === 'light' && color ? LIGHT[kind] : color);
+
+export default function Cloud({ name, className = '', side = 'left', size = 0.3, tone }) {
     const cloud = CLOUDS[name];
     const vbWidth = Number(cloud.viewBox.split(' ')[2]);
     return (
@@ -71,8 +76,8 @@ export default function Cloud({ name, className = '', side = 'left', size = 0.3 
                     key={i}
                     className={p.kind === 'line' ? 'cloud-line' : 'cloud-shade'}
                     d={p.d}
-                    fill={p.fill}
-                    stroke={p.stroke}
+                    fill={recolor(p.fill, p.kind, tone)}
+                    stroke={recolor(p.stroke, p.kind, tone)}
                     strokeWidth={p.strokeWidth}
                     strokeLinecap="round"
                 />

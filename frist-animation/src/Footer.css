@@ -1,0 +1,246 @@
+/* ---------- Footer ---------- */
+
+.footer {
+  position: relative;
+  overflow: hidden;
+  padding: 90px 24px 36px;
+  color: #fff;
+  text-align: start;
+  background-color: #0050ff;
+}
+
+.footer-inner {
+  position: relative;
+  z-index: 1; /* above the clouds */
+  max-width: 1120px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: 48px;
+}
+
+.footer-logo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.footer-cloudy {
+  width: 92px;
+}
+
+.footer-name {
+  font-family: var(--font-title);
+  font-size: 54px;
+  line-height: 1;
+}
+
+.footer-tagline {
+  margin: 14px 0 0;
+  max-width: 300px;
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.5;
+  color: #dcecff;
+}
+
+.footer-heading {
+  margin: 8px 0 14px;
+  font-family: var(--font-title);
+  font-size: 22px;
+  color: var(--light-blue);
+}
+
+.footer-col ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.footer a {
+  font-family: var(--font-body);
+  font-size: 16px;
+  color: #fff;
+  text-decoration: none;
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: 0% 2px;
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  transition: background-size 0.25s ease;
+}
+
+.footer a:hover,
+.footer a:focus-visible {
+  background-size: 100% 2px;
+  outline: none;
+}
+
+.footer-bottom {
+  position: relative;
+  z-index: 1;
+  max-width: 1120px;
+  margin: 64px auto 0;
+  padding-top: 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  border-top: 2px dashed rgba(186, 226, 255, 0.5);
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: #dcecff;
+}
+
+.footer-bottom p {
+  margin: 0;
+}
+
+.back-to-top {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  background: transparent;
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.back-to-top:hover,
+.back-to-top:focus-visible {
+  background: #fff;
+  color: var(--brand-blue);
+  outline: none;
+}
+
+.back-to-top svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* the hero clouds, in white, behind everything */
+.footer-clouds {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.fcloud {
+  position: absolute;
+  height: auto;
+  opacity: 0.5;
+}
+
+.fcloud-a {
+  top: 6px;
+  left: -90px;
+} /* in the empty band above the columns */
+.fcloud-d {
+  top: 0;
+  right: 28%;
+}
+.fcloud-b {
+  top: 52%;
+  left: -60px;
+} /* peeking in from the side */
+.fcloud-c {
+  bottom: 10px;
+  left: 34%;
+} /* behind the bottom row, between its ends */
+.fcloud-e {
+  top: 10px;
+  right: -70px;
+}
+.fcloud-f {
+  top: 4px;
+  left: 30%;
+}
+.fcloud-g {
+  bottom: 70px;
+  right: -40px;
+}
+.fcloud-h {
+  bottom: -6px;
+  left: 62%;
+}
+
+/* dashed ground line, like under Cloudy in the logo */
+.footer-ground {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 34px;
+}
+
+.footer-ground span {
+  height: 5px;
+  border-radius: 3px;
+  background: var(--light-blue);
+}
+
+.footer-ground span:nth-child(1) {
+  width: 18px;
+}
+.footer-ground span:nth-child(2) {
+  width: 160px;
+}
+.footer-ground span:nth-child(3) {
+  width: 60px;
+}
+.footer-ground span:nth-child(4) {
+  width: 18px;
+}
+
+@media (max-width: 820px) {
+  .footer {
+    padding: 70px 20px 30px;
+  }
+  .footer-inner {
+    grid-template-columns: 1fr 1fr;
+    gap: 36px;
+  }
+  .footer-brand {
+    grid-column: 1 / -1;
+  }
+  .fcloud-a {
+    left: -120px;
+  }
+  .fcloud-c {
+    left: auto;
+    right: -80px;
+    bottom: 120px;
+  }
+  .fcloud-d,
+  .fcloud-f,
+  .fcloud-g {
+    display: none;
+  } /* fewer clouds on a phone, so none sit on the links */
+  .fcloud-e {
+    top: 20px;
+    right: -110px;
+  }
+  .fcloud-h {
+    bottom: -10px;
+    left: -40px;
+  }
+  .footer-bottom {
+    flex-direction: column-reverse;
+    align-items: flex-start;
+    margin-top: 44px;
+  }
+}

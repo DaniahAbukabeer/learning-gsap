@@ -1,16 +1,20 @@
 import { gsap } from 'gsap';
-import { BANKS } from './Cloudbanks';
+import { BANKS } from './cloudBanks';
+import { sfx } from './sfx';
 
 // CloudDivider.js: layered cloud banks between two sections (inspired by logbook.so).
 // The front layer is the NEXT section's color, so the clouds "become" that section.
 // The two layers behind it are lighter and drift at different speeds as you scroll,
 // and a hand-drawn blue line traces the front clouds' top edge.
 //
-// Place it between two sections; it overlaps the bottom of the section above it.
-export default function CloudDivider({ back, mid, front, className = '' }) {
+// Place it between two sections.
+//   behind: the color of the section above (shows between the clouds)
+//   line:   color of the hand-drawn edge line (use white on blue clouds)
+export default function CloudDivider({ back, mid, front, behind = 'transparent', line = '#005DFF', className = '' }) {
     return (
-        <div className={`cloud-divider ${className}`} aria-hidden="true">
-            <svg viewBox="0 0 1440 320" preserveAspectRatio="xMidYMax slice">
+        <div className={`cloud-divider ${className}`} style={{ background: behind }} aria-hidden="true">
+            {/* the viewBox starts at -90 to leave room above the tallest clouds, so their tops never get cut off */}
+            <svg viewBox="0 -90 1440 410" preserveAspectRatio="xMidYMax slice">
                 <path className="bank bank-back" d={BANKS.back.shape} fill={back} />
                 <path className="bank bank-mid" d={BANKS.mid.shape} fill={mid} />
                 <path className="bank bank-front" d={BANKS.front.shape} fill={front} />
@@ -18,7 +22,7 @@ export default function CloudDivider({ back, mid, front, className = '' }) {
                     className="bank-line"
                     d={BANKS.front.edge}
                     fill="none"
-                    stroke="#005DFF"
+                    stroke={line}
                     strokeWidth="5"
                     strokeLinecap="round"
                 />
@@ -34,7 +38,10 @@ export function buildDividerScroll(scope) {
         const q = gsap.utils.selector(divider);
         gsap.set(q('.bank-line'), { drawSVG: '0%' });
         gsap.timeline({
-            scrollTrigger: { trigger: divider, start: 'top bottom', end: 'bottom 55%', scrub: 1 },
+            scrollTrigger: {
+                trigger: divider, start: 'top bottom', end: 'bottom 55%', scrub: 1,
+                onEnter: () => sfx.soft('whoosh', 0.3, 600), // a soft gust as the clouds roll in (scrolling down only)
+            },
         })
             .from(q('.bank-back'), { y: 120, ease: 'none' }, 0)
             .from(q('.bank-mid'), { y: 70, ease: 'none' }, 0)

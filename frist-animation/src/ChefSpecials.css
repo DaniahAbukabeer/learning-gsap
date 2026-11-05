@@ -1,0 +1,360 @@
+/* ---------- Chef's Specials ---------- */
+
+.chef {
+  background: var(--page-bg);
+  padding: 150px 24px 120px; /* extra top room for the hat */
+}
+
+.chef-inner {
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+/* Chef Cloudy on the left, the heading on the right */
+.chef-intro {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 48px;
+  align-items: center;
+  max-width: 860px;
+  margin: 0 auto 70px;
+  text-align: start;
+}
+
+/* Chef Cloudy (a button, so he can be clicked) */
+.chef-stage {
+  position: relative;
+  display: block;
+  width: min(280px, 70vw);
+  margin: 0 0 18px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+/* no box after clicking him with the mouse; keyboard users still get an outline */
+.chef-stage:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.chef-stage:focus-visible {
+  outline: 3px solid var(--brand-blue);
+  outline-offset: 8px;
+  border-radius: 24px;
+}
+
+/* the hat + spatula layer sits exactly on top of Cloudy */
+.chef-gear {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.chef-kicker {
+  margin: 0 0 6px;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 14px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--sky-blue);
+}
+
+.chef-title {
+  margin: 0 0 14px;
+  font-family: var(--font-title);
+  font-weight: normal;
+  font-size: clamp(36px, 4.6vw, 58px);
+  line-height: 1.05;
+  color: var(--brand-blue);
+}
+
+.chef-text {
+  margin: 0;
+  max-width: 420px;
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.55;
+  color: #24406e;
+}
+
+/* ----- the order rail and receipts ----- */
+
+.order-rail {
+  position: relative;
+  padding-top: 10px;
+}
+
+/* the metal rail receipts hang from */
+.rail-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 20px;
+  overflow: visible;
+}
+
+.rail-bar path {
+  fill: none;
+  stroke: var(--brand-blue);
+  stroke-width: 8;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.receipts {
+  list-style: none;
+  margin: 0;
+  padding: 0 12px;
+  display: grid;
+  grid-template-columns: repeat(
+    4,
+    minmax(0, 1fr)
+  ); /* four equal receipts that always fit */
+  gap: 26px;
+  align-items: start;
+}
+
+.receipt-slot {
+  position: relative;
+  padding-top: 14px;
+  /* soft paper shadow (a shadow on the parent, because the receipt's torn edges are cut out) */
+  filter: drop-shadow(5px 7px 0 rgba(107, 190, 255, 0.55));
+}
+
+/* the clip that holds each receipt on the rail */
+.receipt-clip {
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  z-index: 2;
+  width: 34px;
+  height: 26px;
+  margin-left: -17px;
+  border: 3px solid var(--brand-blue);
+  border-radius: 6px;
+  background: var(--light-blue);
+}
+
+/* the paper itself, with zig-zag torn edges top and bottom */
+.receipt {
+  --zigzag: 14px;
+  padding: 22px 18px 26px;
+  background: #fff;
+  color: #123a7a;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 1.45;
+  text-align: start;
+  -webkit-mask:
+    conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg)
+      top / var(--zigzag) 51% repeat-x,
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg)
+      bottom / var(--zigzag) 51% repeat-x;
+  mask:
+    conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg)
+      top / var(--zigzag) 51% repeat-x,
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg)
+      bottom / var(--zigzag) 51% repeat-x;
+  transition: transform 0.3s ease;
+  transform-origin: 50% 0%;
+}
+
+.receipt:hover {
+  transform: translateY(-6px) rotate(-1.5deg);
+}
+
+.receipt-slot:nth-child(even) .receipt:hover {
+  transform: translateY(-6px) rotate(1.5deg);
+}
+
+.receipt p {
+  margin: 0;
+}
+
+.receipt-head {
+  text-align: center;
+}
+
+.receipt-brand {
+  font-family: var(--font-title);
+  font-size: 22px;
+  color: var(--brand-blue);
+}
+
+.receipt-small {
+  font-size: 11px;
+  color: #6a7fa6;
+}
+
+/* dashed divider line */
+.receipt-rule {
+  margin: 10px 0;
+  border-top: 2px dashed #9bc4f5;
+}
+
+.receipt-meta {
+  margin: 0;
+}
+
+.receipt-meta div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.receipt-meta dt {
+  text-transform: uppercase;
+  color: #6a7fa6;
+}
+
+.receipt-meta dd {
+  margin: 0;
+  text-align: right;
+}
+
+/* a line with dots between the two sides: "1x Landing Page ....... fresh" */
+.receipt-line {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.receipt-line > span:not(.leader) {
+  flex-shrink: 0;
+}
+
+.receipt-line > span:first-child {
+  flex-shrink: 1; /* long dish names can wrap */
+}
+
+.receipt-line .leader {
+  flex: 1;
+  min-width: 14px;
+  border-bottom: 2px dotted #9bc4f5;
+  transform: translateY(-4px);
+}
+
+.receipt-side {
+  color: #4a6896;
+}
+
+.receipt-title {
+  margin: 10px 0 8px;
+  font-family: var(--font-title);
+  font-weight: normal;
+  font-size: 22px;
+  line-height: 1.1;
+  color: var(--brand-blue);
+}
+
+.receipt-image {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 3;
+  margin-bottom: 10px;
+  overflow: hidden;
+  border: 2px dashed #9bc4f5;
+  border-radius: 6px;
+  background: var(--page-bg);
+  font-size: 12px;
+  color: #6a7fa6;
+}
+
+.receipt-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.receipt-desc {
+  margin-bottom: 10px !important;
+  font-family: var(--font-body);
+  font-size: 14px;
+}
+
+.receipt-total {
+  font-weight: 700;
+  color: var(--brand-blue);
+}
+
+/* barcode made of stripes */
+.receipt-barcode {
+  height: 36px;
+  margin: 4px 6px 8px;
+  background: repeating-linear-gradient(
+    90deg,
+    #123a7a 0 2px,
+    transparent 2px 4px,
+    #123a7a 4px 5px,
+    transparent 5px 8px,
+    #123a7a 8px 11px,
+    transparent 11px 12px,
+    #123a7a 12px 13px,
+    transparent 13px 16px
+  );
+}
+
+.receipt-thanks {
+  text-align: center;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #6a7fa6;
+}
+
+/* ----- smaller screens ----- */
+
+@media (max-width: 960px) {
+  .receipts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: 40px;
+  }
+}
+
+@media (max-width: 760px) {
+  .chef {
+    padding: 130px 16px 90px;
+  }
+
+  .chef-intro {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  .chef-stage {
+    margin: 0 auto 18px;
+    width: min(220px, 60vw);
+  }
+  .chef-text {
+    margin: 0 auto;
+  }
+
+  /* phones: receipts in a row you can swipe through */
+  .receipts {
+    display: flex;
+    gap: 22px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding: 0 16px 20px;
+    margin: 0 -16px;
+  }
+
+  .receipt-slot {
+    flex: 0 0 78%;
+    scroll-snap-align: center;
+  }
+}
+
+/* Arabic letters are taller than Somelist's, so Arabic titles need more line height */
+:root[lang="ar"] .chef-title,
+:root[lang="ar"] .receipt-title {
+  line-height: 1.45;
+}

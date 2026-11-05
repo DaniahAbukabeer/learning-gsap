@@ -12,7 +12,7 @@
   grid-template-columns: minmax(200px, 340px) 1fr;
   align-items: center;
   gap: 56px;
-  text-align: left;
+  text-align: start;
 }
 
 .meet-spot {
@@ -21,7 +21,7 @@
 
 .meet-kicker {
   margin: 0 0 6px;
-  font-family: "Ubuntu", system-ui, sans-serif;
+  font-family: var(--font-body);
   font-weight: 500;
   font-size: 14px;
   letter-spacing: 0.1em;
@@ -31,7 +31,7 @@
 
 .meet-title {
   margin: 0 0 16px;
-  font-family: "Somelist", system-ui, sans-serif;
+  font-family: var(--font-title);
   font-weight: normal;
   font-size: clamp(36px, 5vw, 60px);
   line-height: 1.05;
@@ -41,7 +41,7 @@
 .meet-desc {
   margin: 0 0 14px;
   max-width: 520px;
-  font-family: "Ubuntu", system-ui, sans-serif;
+  font-family: var(--font-body);
   font-size: 18px;
   line-height: 1.55;
   color: #24406e;
@@ -49,7 +49,7 @@
 
 .meet-hint {
   margin: 0;
-  font-family: "Ubuntu", system-ui, sans-serif;
+  font-family: var(--font-body);
   font-size: 15px;
   font-style: italic;
   color: #7d8db0;
@@ -72,7 +72,7 @@
 
 .moods-title {
   margin: 0 0 20px;
-  font-family: "Somelist", system-ui, sans-serif;
+  font-family: var(--font-title);
   font-size: clamp(24px, 3vw, 32px);
   color: var(--brand-blue);
 }
@@ -91,7 +91,7 @@
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  font-family: "Ubuntu", system-ui, sans-serif;
+  font-family: var(--font-body);
   font-size: 13px;
   color: #4a5878;
 }
@@ -125,4 +125,9 @@
     grid-template-columns: repeat(3, 1fr);
     row-gap: 34px;
   }
+}
+
+/* Arabic letters are taller than Somelist's, so Arabic titles need more line height */
+:root[lang="ar"] .meet-title {
+  line-height: 1.45;
 }

@@ -22,7 +22,7 @@
 
 .menu-kicker {
   margin: 0 0 4px;
-  font-family: "Ubuntu", system-ui, sans-serif;
+  font-family: var(--font-body);
   font-weight: 500;
   font-size: 14px;
   letter-spacing: 0.1em;
@@ -33,7 +33,7 @@
 
 .menu-title {
   margin: 0;
-  font-family: "Somelist", system-ui, sans-serif;
+  font-family: var(--font-title);
   font-weight: normal;
   font-size: clamp(44px, 6vw, 72px);
   line-height: 1;
@@ -103,6 +103,46 @@
   border-radius: 24px;
 }
 
+/* stars around the plate (behind the dishes) */
+.menu-stars {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.menu-star {
+  position: absolute;
+  display: block;
+}
+
+.menu-star svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.star-1 {
+  width: calc(var(--plate) * 0.14);
+  left: calc(50% - var(--plate) * 0.66);
+  top: 4%;
+}
+.star-2 {
+  width: calc(var(--plate) * 0.09);
+  left: calc(50% - var(--plate) * 0.6);
+  bottom: 12%;
+}
+.star-3 {
+  width: calc(var(--plate) * 0.1);
+  left: calc(50% + var(--plate) * 0.52);
+  top: 10%;
+}
+.star-4 {
+  width: calc(var(--plate) * 0.07);
+  left: calc(50% - var(--plate) * 0.8);
+  top: 46%;
+}
+
 .service-bell {
   position: absolute;
   left: calc(50% + var(--plate) * 0.36);
@@ -120,11 +160,12 @@
 }
 
 .menu-count {
+  direction: ltr; /* the arrows match the carousel, which always slides the same way */
   display: inline-flex;
   align-items: center;
   gap: 14px;
   margin-bottom: 8px;
-  font-family: "Somelist", system-ui, sans-serif;
+  font-family: var(--font-title);
   font-size: 18px;
   color: var(--brand-blue);
 }
@@ -167,7 +208,7 @@
 
 .dish-name {
   margin: 0 0 6px;
-  font-family: "Somelist", system-ui, sans-serif;
+  font-family: var(--font-title);
   font-weight: normal;
   font-size: clamp(28px, 3.6vw, 40px);
   line-height: 1.05;
@@ -177,7 +218,7 @@
 .dish-desc {
   margin: 0 auto 12px;
   max-width: 460px;
-  font-family: "Ubuntu", system-ui, sans-serif;
+  font-family: var(--font-body);
   font-size: 17px;
   line-height: 1.5;
   color: #24406e;
@@ -198,7 +239,7 @@
   border-radius: 999px;
   background: #fff;
   color: var(--brand-blue);
-  font-family: "Ubuntu", system-ui, sans-serif;
+  font-family: var(--font-body);
   font-size: 14px;
   font-weight: 500;
 }
@@ -208,7 +249,10 @@
 .cloud-divider {
   position: relative;
   z-index: 3;
-  height: clamp(150px, 20vw, 300px);
+  /* the same shape as the drawing at every screen width, so the tops of the clouds
+     are never cut off (on phones it stays at least 150px tall and trims the sides instead) */
+  aspect-ratio: 1440 / 410;
+  min-height: 150px;
   /* sits below the hero (not on top of it), so it only appears once you scroll */
   overflow: hidden; /* the back layers start lower down; don't let them peek out below */
   pointer-events: none;
@@ -228,6 +272,18 @@
 }
 
 @media (max-width: 600px) {
+  .star-4 {
+    display: none;
+  } /* no room beside the plate on a phone */
+  .star-1 {
+    left: calc(50% - var(--plate) * 0.56);
+    top: -2%;
+  }
+  .star-3 {
+    left: calc(50% + var(--plate) * 0.44);
+    top: 0;
+  }
+
   .menu {
     padding-top: 84px;
   }
@@ -242,4 +298,10 @@
     font-size: 12px;
     padding: 5px 11px;
   }
+}
+
+/* Arabic letters are taller than Somelist's, so Arabic titles need more line height */
+:root[lang="ar"] .menu-title,
+:root[lang="ar"] .dish-name {
+  line-height: 1.45;
 }
