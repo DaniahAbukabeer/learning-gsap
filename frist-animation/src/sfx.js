@@ -23,9 +23,63 @@ const sounds = {
     hover: make('hover', 1.0), // max volume (1.0); was 0.25
     click: make('clickbutton', 0.5),
     type: make('clickbutton', 0.2), // soft click for each letter of the title
+
+    // ---- Menu section sounds (files in public/sounds/) ----
+    clocheLift: make('cloche-lift', 0.6),   // lid lifting off the plate
+    clocheClose: make('cloche-close', 0.5), // lid set back down
+    steam: make('steam', 0.3),              // soft steam / sizzle as the dish appears
+    bell: make('service-bell', 0.5),        // "order up!" ding when the dish is served
 };
 
 let enabled = false;
+
+// ---- Background audio: constant cloud ambience + shuffled music ----
+// Plays from the moment the hero appears, for the whole visit.
+// Volumes are set per file so they sit evenly and softly under everything else.
+const AMBIENCE_VOLUME = 0.12; // background-clouds.mp3 is a loud file, so it stays low
+const MUSIC = [
+    { file: 'elevator-music', volume: 0.18 },
+    { file: 'LOFIMUSIC', volume: 0.32 }, // a quieter recording, so a little higher
+];
+
+const ambience = new Howl({
+    src: ['/sounds/background-clouds.mp3'],
+    // loop a slice that skips the file's tiny silent padding, so the loop has no gap
+    sprite: { loop: [50, 21950, true] },
+    volume: 0,
+    preload: true,
+    onloaderror: () => console.warn('[sfx] could NOT load /sounds/background-clouds.mp3'),
+});
+
+let backgroundOn = false;
+let track = null;
+let lastTrack = -1;
+
+function playNextTrack() {
+    // pick a random track, never the same one twice in a row
+    let i = Math.floor(Math.random() * MUSIC.length);
+    if (MUSIC.length > 1 && i === lastTrack) i = (i + 1) % MUSIC.length;
+    lastTrack = i;
+    const { file, volume } = MUSIC[i];
+
+    // fade the old track out while the new one fades in
+    if (track) {
+        const old = track;
+        old.off('end');
+        old.fade(old.volume(), 0, 1500);
+        old.once('fade', () => old.unload());
+    }
+    const next = new Howl({
+        src: [`/sounds/${file}.mp3`],
+        html5: true, // streams music instead of loading it all first
+        volume: 0,
+        onloaderror: () => console.warn(`[sfx] could NOT load /sounds/${file}.mp3`),
+    });
+    next.once('play', () => next.fade(0, volume, 2000));
+    next.once('end', playNextTrack); // when a song ends, shuffle to another
+    track = next;
+    next.play();
+}
 
 export const sfx = {
     // Must be called directly inside a click/tap handler
@@ -36,9 +90,28 @@ export const sfx = {
 
     isEnabled: () => enabled,
 
+    // Start the cloud ambience + music (only once, and only if sound is on)
+    startBackground() {
+        if (!enabled || backgroundOn) return;
+        backgroundOn = true;
+        ambience.play('loop');
+        ambience.fade(0, AMBIENCE_VOLUME, 3000);
+        playNextTrack();
+    },
+
+    // Skip to another random song
+    shuffleMusic() {
+        if (backgroundOn) playNextTrack();
+    },
+
+    // Mute / unmute the whole website
+    setMuted(muted) {
+        Howler.mute(muted);
+    },
+
     // Play a sound from start to finish
     play(name, part) {
-        if (!enabled) return;
+        if (!enabled || !sounds[name]) return; // skips sounds you haven't added yet
         sounds[name].play(part);
     },
 

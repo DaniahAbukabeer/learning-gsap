@@ -1,0 +1,245 @@
+/* ---------- The Menu section: a plate with a carousel of dishes ---------- */
+
+.menu {
+  --plate: min(44vh, 420px, 84vw); /* size of the serving plate */
+  --dish: min(26vh, 250px, 46vw); /* size of each dish */
+
+  position: relative;
+  height: 100vh;
+  box-sizing: border-box;
+  padding: 92px 16px 24px; /* top padding leaves room for the logo in the corner */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--light-blue); /* Pastel Blue: the color swap from the hero */
+  overflow: hidden;
+}
+
+.menu-head {
+  text-align: center;
+}
+
+.menu-kicker {
+  margin: 0 0 4px;
+  font-family: "Ubuntu", system-ui, sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--brand-blue);
+  opacity: 0.7;
+}
+
+.menu-title {
+  margin: 0;
+  font-family: "Somelist", system-ui, sans-serif;
+  font-weight: normal;
+  font-size: clamp(44px, 6vw, 72px);
+  line-height: 1;
+  color: var(--brand-blue);
+}
+
+/* ----- the table: plate + dish track + bell ----- */
+
+.menu-table {
+  position: relative;
+  width: 100%;
+  height: var(--plate);
+  margin: 12px 0 8px;
+  flex-shrink: 0;
+}
+
+.menu-plate {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--plate);
+  height: var(--plate);
+  transform: translate(-50%, -50%);
+  overflow: visible;
+}
+
+/* the row of dishes; GSAP slides it sideways */
+.menu-track {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.menu-item {
+  position: absolute;
+  top: 0;
+  left: calc(var(--i) * var(--gap, 380px));
+  width: var(--dish);
+  height: var(--dish);
+  margin-left: calc(var(--dish) / -2);
+  margin-top: calc(var(--dish) / -2);
+}
+
+.menu-dish {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.menu-dish svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.menu-dish:focus-visible {
+  outline: 3px solid var(--brand-blue);
+  outline-offset: 6px;
+  border-radius: 24px;
+}
+
+.service-bell {
+  position: absolute;
+  left: calc(50% + var(--plate) * 0.36);
+  bottom: 2%;
+  width: clamp(64px, 9vh, 96px);
+  overflow: visible;
+  z-index: 2;
+}
+
+/* ----- what's on the plate ----- */
+
+.menu-info {
+  width: min(560px, 100%);
+  text-align: center;
+}
+
+.menu-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 8px;
+  font-family: "Somelist", system-ui, sans-serif;
+  font-size: 18px;
+  color: var(--brand-blue);
+}
+
+.menu-arrow {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 3px solid var(--brand-blue);
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.menu-arrow:hover {
+  transform: scale(1.08);
+}
+
+.menu-arrow svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: var(--brand-blue);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* all five descriptions share one spot; GSAP shows one at a time */
+.dish-texts {
+  display: grid;
+}
+
+.dish-text {
+  grid-area: 1 / 1;
+}
+
+.dish-name {
+  margin: 0 0 6px;
+  font-family: "Somelist", system-ui, sans-serif;
+  font-weight: normal;
+  font-size: clamp(28px, 3.6vw, 40px);
+  line-height: 1.05;
+  color: var(--brand-blue);
+}
+
+.dish-desc {
+  margin: 0 auto 12px;
+  max-width: 460px;
+  font-family: "Ubuntu", system-ui, sans-serif;
+  font-size: 17px;
+  line-height: 1.5;
+  color: #24406e;
+}
+
+.ingredients {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.ingredients li {
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--brand-blue);
+  font-family: "Ubuntu", system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* ----- cloud dividers between sections ----- */
+
+.cloud-divider {
+  position: relative;
+  z-index: 3;
+  height: clamp(150px, 20vw, 300px);
+  /* sits below the hero (not on top of it), so it only appears once you scroll */
+  overflow: hidden; /* the back layers start lower down; don't let them peek out below */
+  pointer-events: none;
+}
+
+.cloud-divider svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* the divider leaving the Menu has the Menu's pastel blue behind it */
+.cloud-divider.divider-out {
+  background: var(--light-blue);
+}
+
+@media (max-width: 600px) {
+  .menu {
+    padding-top: 84px;
+  }
+
+  .menu-kicker {
+    font-size: 12px;
+  }
+  .dish-desc {
+    font-size: 15px;
+  }
+  .ingredients li {
+    font-size: 12px;
+    padding: 5px 11px;
+  }
+}

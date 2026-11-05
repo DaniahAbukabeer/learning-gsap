@@ -1,15 +1,22 @@
 import './App.css';
 import { gsap } from 'gsap';
 import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { ScrollSmoother } from 'gsap/ScrollSmoother';
 import { useEffect, useState, useRef } from 'react';
 import { useGSAP } from '@gsap/react';
 import Splash from './Splash';
 import Mascot from './Mascot';
 import Cloud from './Cloud';
-import SolaceTitle from './SolaceTitle.js';
+import SolaceTitle from './SolaceTitle';
+import Menu, { buildMenuScroll } from './Menu';
+import CloudDivider, { buildDividerScroll } from './CloudDivider';
+import MeetCloudy, { buildMeetCloudyScroll } from './MeetCloudy';
+import CloudyBuddy from './CloudyBuddy';
+import SoundControls from './SoundControls';
 import { sfx } from './sfx';
 
-gsap.registerPlugin(useGSAP, DrawSVGPlugin);
+gsap.registerPlugin(useGSAP, DrawSVGPlugin, ScrollTrigger, ScrollSmoother);
 
 // Reusable splash burst.
 // immediateRender: false goes in the SECOND object of fromTo — it stops GSAP from
@@ -50,8 +57,12 @@ const START_DROP = 'M0,-14 C4,-8 9,-2 9,3 A9,9 0 0 1 -9,3 C-9,-2 -4,-8 0,-14Z';
 
 function App() {
   const [entered, setEntered] = useState(false);
+  const [soundOn, setSoundOn] = useState(false); // did they choose sound (and not mute it)?
   const [isLoading, setIsLoading] = useState(true);
   const container = useRef(null);
+  const wrapper = useRef(null);
+  const content = useRef(null);
+  const smoother = useRef();
   const spin = useRef();
   const idle = useRef();
 
@@ -65,8 +76,19 @@ function App() {
     return () => clearTimeout(t);
   }, [entered]);
 
-  // Initial states, start screen, spinner loop (runs once)
+  // Initial states, start screen, spinner loop, scroll animations (runs once)
   const { contextSafe } = useGSAP(() => {
+    // Smooth, buttery scrolling for the whole page. Created first, before any
+    // ScrollTriggers. It stays paused (no scrolling) until the intro has finished.
+    smoother.current = ScrollSmoother.create({
+      wrapper: wrapper.current,
+      content: content.current,
+      smooth: 1.2,        // seconds the page takes to "catch up" to your scroll
+      effects: true,      // enables data-speed parallax (used on the hero clouds)
+      smoothTouch: 0.1,   // only a touch of smoothing on phones
+    });
+    smoother.current.paused(true);
+
     gsap.set('.drop', { autoAlpha: 0, transformOrigin: '50% 50%' });
     gsap.set(['#shade', '#face', '#legs > *', '#ground > *'], { autoAlpha: 0 });
     gsap.set('#face', { transformOrigin: '50% 50%' });
@@ -132,13 +154,53 @@ function App() {
     DVD.clicks.forEach((t) => {
       spin.current.to('.loading-spinner', { keyframes: { scale: [1.06, 1] }, duration: 0.12 }, t);
     });
+
+    // ----- Scrolling away from the hero: the clouds part like curtains -----
+    // (the clouds also drift up at different speeds thanks to their data-speed)
+    gsap.timeline({
+      scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: 1 },
+    })
+      .to('.hero-content', { y: -140, autoAlpha: 0, ease: 'none' }, 0)
+      .to('.slot-left', { x: -220, rotation: -8, ease: 'none' }, 0)
+      .to('.slot-right', { x: 220, rotation: 8, ease: 'none' }, 0);
+
+    // The header fade appears once you start scrolling
+    gsap.to('.header-fade', { autoAlpha: 1, ease: 'none', scrollTrigger: { start: 40, end: 160, scrub: true } });
+
+    // ----- Layered cloud dividers between sections -----
+    buildDividerScroll(container.current);
+
+    // ----- The Menu: plate + carousel of dishes -----
+    const cleanupMenu = buildMenuScroll(container.current.querySelector('#menu'), () => smoother.current);
+
+    // The header fade takes on each section's color as that section reaches the top
+    const headerColor = (trigger, from, to) => gsap.fromTo('.header-fade',
+      { '--header-bg': from },
+      {
+        '--header-bg': to, ease: 'none', immediateRender: false,
+        scrollTrigger: { trigger, start: 'top 120px', end: 'top top', scrub: true }
+      });
+    headerColor('#menu', 'rgb(242, 248, 255)', 'rgb(186, 226, 255)');
+    headerColor('#meet-cloudy', 'rgb(186, 226, 255)', 'rgb(255, 255, 255)');
+
+    // ----- Meet Cloudy: on desktop he hops off the page and follows your cursor -----
+    const cleanupMeet = buildMeetCloudyScroll(container.current.querySelector('#meet-cloudy'));
+
+    return () => { cleanupMenu(); cleanupMeet(); };
   }, { scope: container });
+
+  // "See the menu" button: glide down to the Menu
+  const goToMenu = contextSafe((e) => {
+    e.preventDefault();
+    smoother.current?.scrollTo('#menu', true, 'top top');
+  });
 
   // A start-screen button was clicked
   const handleEnter = contextSafe((withSound) => {
     if (withSound) {
       // Happens directly inside the click, so the browser allows the audio
       sfx.enable();
+      setSoundOn(true);
       sfx.play('click'); // this first click happened before sound was on, so play it now
     }
 
@@ -226,7 +288,13 @@ function App() {
 
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    gsap.timeline()
+    gsap.timeline({
+      onComplete: () => {
+        // intro finished: let people scroll, and re-measure everything scroll-related
+        smoother.current?.paused(false);
+        ScrollTrigger.refresh();
+      },
+    })
       // 1. cube pops
       .to('.loading-spinner', { scale: 1.12, duration: 0.12, ease: 'power2.out' })
       .to('.loading-spinner', { scale: 0, duration: 0.12, ease: 'power3.in' })
@@ -237,7 +305,7 @@ function App() {
       // 2. one flash; the background switches to light while the flash hides it
       .addLabel('flash', 'pop+=0.3')
       .to('.flash', { autoAlpha: reduceMotion ? 0 : 0.85, duration: 0.05 }, 'flash')
-      .set(container.current, { backgroundColor: '#f2f8ff' }, 'flash+=0.05')
+      .set(document.body, { backgroundColor: '#f2f8ff' }, 'flash+=0.05')
       .to('.flash', { autoAlpha: 0, duration: 0.4, ease: 'power2.out' }, 'flash+=0.05')
 
       // 3. the cloud logo draws itself, then holds for a beat
@@ -284,6 +352,9 @@ function App() {
       // 7. the whole logo floats up into the top-left corner and becomes the header logo
       .addLabel('dock', '+=0.6')
       .call(() => sfx.play('whoosh'), null, 'dock')
+      // the cloud ambience and music fade in as the hero appears
+      .call(() => sfx.startBackground(), null, 'dock+=0.4')
+      .fromTo('.sound-controls', { autoAlpha: 0, y: -10 }, { autoAlpha: 1, y: 0, duration: 0.5, immediateRender: false }, 'dock+=0.6')
       .to('.lockup', {
         left: DOCK_LEFT, top: DOCK_TOP, xPercent: 0, yPercent: 0, x: 0, y: 0,
         scale: () => DOCK_HEIGHT / container.current.querySelector('.lockup').offsetHeight,
@@ -301,6 +372,15 @@ function App() {
   return (
     <div className="App" ref={container}>
       <div className="flash"></div>
+
+      {/* soft fade behind the header logo, so content scrolling under it stays tidy */}
+      <div className="header-fade" aria-hidden="true"></div>
+
+      {/* Cloudy, following your cursor (desktop only, after you meet him) */}
+      <CloudyBuddy />
+
+      {/* mute / shuffle buttons (appear once the intro is done) */}
+      <SoundControls soundOn={soundOn} setSoundOn={setSoundOn} />
 
       {/* The logo: starts as the loading animation in the middle, ends as the header logo */}
       <div className="lockup">
@@ -336,23 +416,60 @@ function App() {
         </div>
       )}
 
-      {/* Hero section: the first thing on the real page */}
-      <main className="hero">
-        <Cloud name="cloud2" className="cloud-a" side="left" size={0.28} />
-        <Cloud name="cloud11" className="cloud-b" side="left" size={0.3} />
-        <Cloud name="cloud3" className="cloud-c" side="left" size={0.32} />
-        <Cloud name="cloud1" className="cloud-d" side="right" size={0.3} />
-        <Cloud name="cloud5" className="cloud-e" side="right" size={0.32} />
+      {/* Everything that scrolls lives inside the smooth-scroll wrapper.
+          Fixed things (the logo, the flash, the start screen) stay outside it. */}
+      <div className="smooth-wrapper" ref={wrapper}>
+        <div className="smooth-content" ref={content}>
+          {/* Hero: the first thing on the real page */}
+          <main className="hero">
+            {/* data-speed: below 1 = drifts up slower than the page (parallax) */}
+            <div className="cloud-slot slot-left cloud-a" data-speed="0.75">
+              <Cloud name="cloud2" side="left" size={0.28} />
+            </div>
+            <div className="cloud-slot slot-left cloud-b" data-speed="0.55">
+              <Cloud name="cloud11" side="left" size={0.3} />
+            </div>
+            <div className="cloud-slot slot-left cloud-c" data-speed="0.9">
+              <Cloud name="cloud3" side="left" size={0.32} />
+            </div>
+            <div className="cloud-slot slot-right cloud-d" data-speed="0.65">
+              <Cloud name="cloud1" side="right" size={0.3} />
+            </div>
+            <div className="cloud-slot slot-right cloud-e" data-speed="0.85">
+              <Cloud name="cloud5" side="right" size={0.32} />
+            </div>
 
-        <div className="hero-content">
-          {/* PLACEHOLDER COPY: replace with your real headline, text and button */}
-          <h2 className="hero-title">A softer place to land</h2>
-          <p className="hero-text">
-            Placeholder text: one or two sentences about what Solace is and who it's for.
-          </p>
-          <a className="btn btn-hero" href="#start">Get started</a>
+            <div className="hero-content">
+              <p className="hero-kicker">Welcome to Solace!</p>
+              <h2 className="hero-title">Your friendly neighborhood software cooking house</h2>
+              <p className="hero-text">
+                We cook up fully automated systems, mobile apps, breathtaking landing pages,
+                CMS's and, of course, Cloudy: AI agentic systems tailored to your needs.
+              </p>
+              <a className="btn btn-hero" href="#menu" onClick={goToMenu}>See the menu</a>
+              <p className="scroll-hint">
+                or scroll to see what's cooking
+                <svg viewBox="0 0 24 40" width="14" height="24" aria-hidden="true">
+                  <path d="M12 3 C6 13 18 21 12 33 M5 26 L12 35 L19 26" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </p>
+            </div>
+          </main>
+
+          {/* clouds rise up and become the Menu's pastel blue */}
+          <CloudDivider back="#D3EBFF" mid="#FFFFFF" front="#BAE2FF" />
+          <Menu />
+          {/* clouds rise out of the Menu into the next (white) section */}
+          <CloudDivider className="divider-out" back="#DDF0FF" mid="#F4FAFF" front="#FFFFFF" />
+
+          <MeetCloudy />
+
+          {/* PLACEHOLDER: the next sections (values, process, contact...) go here */}
+          <section className="next-up">
+            <p>Next course: Place an order <span>(coming soon)</span></p>
+          </section>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

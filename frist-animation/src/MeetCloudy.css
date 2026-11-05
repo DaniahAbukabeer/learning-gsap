@@ -1,0 +1,128 @@
+/* ---------- Meet Cloudy ---------- */
+
+.meet-cloudy {
+  background: #fff;
+  padding: 80px 24px 120px;
+}
+
+.meet-inner {
+  max-width: 1040px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(200px, 340px) 1fr;
+  align-items: center;
+  gap: 56px;
+  text-align: left;
+}
+
+.meet-spot {
+  width: 100%;
+}
+
+.meet-kicker {
+  margin: 0 0 6px;
+  font-family: "Ubuntu", system-ui, sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--sky-blue);
+}
+
+.meet-title {
+  margin: 0 0 16px;
+  font-family: "Somelist", system-ui, sans-serif;
+  font-weight: normal;
+  font-size: clamp(36px, 5vw, 60px);
+  line-height: 1.05;
+  color: var(--brand-blue);
+}
+
+.meet-desc {
+  margin: 0 0 14px;
+  max-width: 520px;
+  font-family: "Ubuntu", system-ui, sans-serif;
+  font-size: 18px;
+  line-height: 1.55;
+  color: #24406e;
+}
+
+.meet-hint {
+  margin: 0;
+  font-family: "Ubuntu", system-ui, sans-serif;
+  font-size: 15px;
+  font-style: italic;
+  color: #7d8db0;
+}
+
+/* no cursor on touch screens, so no tagging along either */
+@media (hover: none) {
+  .meet-hint {
+    display: none;
+  }
+}
+
+/* ----- the row of moods ----- */
+
+.moods {
+  max-width: 1040px;
+  margin: 72px auto 0;
+  text-align: center;
+}
+
+.moods-title {
+  margin: 0 0 20px;
+  font-family: "Somelist", system-ui, sans-serif;
+  font-size: clamp(24px, 3vw, 32px);
+  color: var(--brand-blue);
+}
+
+.moods-row {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  gap: 12px;
+}
+
+.mood {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-family: "Ubuntu", system-ui, sans-serif;
+  font-size: 13px;
+  color: #4a5878;
+}
+
+.mood .cloudy {
+  max-width: 100px;
+}
+
+@media (max-width: 800px) {
+  .meet-cloudy {
+    padding: 64px 16px 80px;
+  }
+
+  .meet-inner {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    text-align: center;
+  }
+
+  .meet-spot {
+    max-width: 220px;
+    margin: 0 auto;
+  }
+  .meet-desc {
+    margin-left: auto;
+    margin-right: auto;
+    font-size: 16px;
+  }
+
+  .moods-row {
+    grid-template-columns: repeat(3, 1fr);
+    row-gap: 34px;
+  }
+}

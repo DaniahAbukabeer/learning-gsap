@@ -1,0 +1,20 @@
+/* Cloudy: the reusable mascot */
+.cloudy {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible; /* the angry mood's steam pokes out above */
+}
+
+/* ---------- Cloudy buddy: follows the cursor on desktop ---------- */
+.cloudy-buddy {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 110px;
+  z-index: 40;
+  pointer-events: none; /* never blocks a click */
+  opacity: 0;
+  visibility: hidden;
+  will-change: transform;
+}
