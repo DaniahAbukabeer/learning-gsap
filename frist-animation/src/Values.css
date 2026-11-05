@@ -222,3 +222,10 @@
 :root[lang="ar"] .story-track {
   line-height: 1.45;
 }
+
+/* Arabic labels are wider and taller, so the little label sits fully above the big one
+   instead of covering its words */
+:root[lang="ar"] .tag-sub {
+  top: -1em;
+  inset-inline-end: -0.3em;
+}

@@ -18,6 +18,7 @@ import Values, { buildValuesScroll, rebuildValuesStory } from './Values';
 import ChefSpecials, { buildChefScroll } from './ChefSpecials';
 import PlaceOrder, { buildOrderScroll } from './PlaceOrder';
 import Footer, { buildFooterScroll } from './Footer';
+import ScrollProgress, { buildScrollProgress } from './ScrollProgress';
 import { sfx } from './sfx';
 import { LangContext, makeT, savedLang, saveLang } from './i18n';
 
@@ -115,7 +116,6 @@ function App() {
 
   const toggleLang = () => {
     setLang((l) => (l === 'en' ? 'ar' : 'en'));
-    sfx.soft('pop', 0.35);
   };
 
   // Hover + click sounds for every button/link on the page
@@ -219,12 +219,6 @@ function App() {
     // The header fade appears once you start scrolling
     gsap.to('.header-fade', { autoAlpha: 1, ease: 'none', scrollTrigger: { start: 40, end: 160, scrub: true } });
 
-    // scroll progress line along the top: 0% at the top of the page, 100% at the very bottom
-    gsap.fromTo('.scroll-progress-fill', { width: '0%' }, {
-      width: '100%', ease: 'none',
-      scrollTrigger: { start: 0, end: 'max', scrub: 0.3 },
-    });
-
     // ----- Layered cloud dividers between sections -----
     buildDividerScroll(container.current);
 
@@ -271,7 +265,10 @@ function App() {
     buildFooterScroll(container.current.querySelector('#footer'));
     ScrollTrigger.sort(); // pins first measured top-to-bottom, whatever order they were made in
 
-    return () => { cleanupMenu(); cleanupMeet(); cleanupValues(); cleanupChef(); };
+    // ----- Cloudy's journey: the scroll progress line down the side -----
+    const cleanupProgress = buildScrollProgress(container.current.querySelector('.scroll-progress'));
+
+    return () => { cleanupMenu(); cleanupMeet(); cleanupValues(); cleanupChef(); cleanupProgress(); };
   }, { scope: container });
 
   // Glide to a section (or to a scroll position, e.g. 0 for the top). Used by the footer.
@@ -444,7 +441,8 @@ function App() {
       .call(() => sfx.play('whoosh'), null, 'dock')
       // the cloud ambience and music fade in as the hero appears
       .call(() => sfx.startBackground(), null, 'dock+=0.4')
-      .fromTo('.sound-controls', { autoAlpha: 0, y: -10 }, { autoAlpha: 1, y: 0, duration: 0.5, immediateRender: false }, 'dock+=0.6')
+      // the rest of the cassette keys slide out of the deck
+      .fromTo('.sound-controls', { autoAlpha: 0, width: 0 }, { autoAlpha: 1, width: 'auto', duration: 0.6, ease: 'power3.out', immediateRender: false }, 'dock+=0.6')
       .fromTo('.scroll-progress', { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.5, immediateRender: false }, 'dock+=0.6')
       .to('.lockup', {
         left: () => dockLeft(DOCK_HEIGHT / container.current.querySelector('.lockup').offsetHeight),
@@ -469,7 +467,7 @@ function App() {
 
         {/* soft fade behind the header logo, so content scrolling under it stays tidy */}
         <div className="header-fade" aria-hidden="true"></div>
-        <div className="scroll-progress" aria-hidden="true"><div className="scroll-progress-fill"></div></div>
+        <ScrollProgress onNavigate={(id) => navigate(id)} />
 
         {/* Cloudy, following your cursor (desktop only, after you meet him) */}
         <CloudyBuddy />
@@ -549,10 +547,10 @@ function App() {
             </main>
 
             {/* clouds rise up and become the Menu's pastel blue */}
-            <CloudDivider back="#D3EBFF" mid="#FFFFFF" front="#BAE2FF" />
+            <CloudDivider back="#D3EBFF" mid="#FFFFFF" front="#BAE2FF" table="start" />
             <Menu />
             {/* clouds rise out of the Menu into the next (white) section */}
-            <CloudDivider behind="#BAE2FF" back="#DDF0FF" mid="#F4FAFF" front="#FFFFFF" />
+            <CloudDivider behind="#BAE2FF" back="#DDF0FF" mid="#F4FAFF" front="#FFFFFF" table="end" />
 
             <MeetCloudy />
 
@@ -561,7 +559,7 @@ function App() {
             <Values />
             {/* and light clouds rise out of it into Chef's Specials */}
             <CloudDivider behind="#0050FF" back="#3D7BFF" mid="#9CC7FF" front="#F2F8FF" line="#FFFFFF" />
-            <ChefSpecials />
+            <ChefSpecials getSmoother={() => smoother.current} />
 
             {/* soft clouds into Place an order (white) */}
             <CloudDivider behind="#F2F8FF" back="#DDEEFF" mid="#EEF6FF" front="#FFFFFF" />

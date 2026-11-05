@@ -1,7 +1,15 @@
 /* ---------- The Menu section: a plate with a carousel of dishes ---------- */
 
-.menu {
+/* shared with the cloud dividers above and below the Menu, where the table starts and ends */
+:root {
   --plate: min(44vh, 420px, 84vw); /* size of the serving plate */
+  --s: calc(
+    var(--plate) / 387
+  ); /* 1px of your table drawing, at this plate size */
+  --runner: calc(var(--s) * 723); /* width of the table */
+}
+
+.menu {
   --dish: min(26vh, 250px, 46vw); /* size of each dish */
 
   position: relative;
@@ -18,6 +26,100 @@
 
 .menu-head {
   text-align: center;
+}
+
+/* everything sits on top of the table */
+.menu-head,
+.menu-table,
+.menu-info {
+  position: relative;
+  z-index: 1;
+}
+
+/* ----- the table, seen from above ----- */
+
+.table-top {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* the runner down the middle, centered under the plate */
+.table-runner {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(50% - var(--runner) / 2);
+  width: var(--runner);
+  box-sizing: border-box;
+  background: var(--sky-blue);
+  border-inline: var(--table-edge) solid var(--brand-blue);
+}
+
+:root {
+  --table-edge: max(5px, calc(var(--s) * 12)); /* the table's blue edge */
+}
+
+.table-cup {
+  position: absolute;
+  width: calc(var(--s) * 74);
+}
+
+/* one glass beside the title, one down by the description (clear of the text) */
+.cup-1 {
+  left: calc(50% + var(--s) * 236);
+  top: calc(var(--s) * 120);
+}
+.cup-2 {
+  left: calc(50% - var(--s) * 330);
+  bottom: 8%;
+  transform: rotate(-60deg);
+}
+
+/* spoon on the left of the plate, fork and knife on the right */
+.cutlery {
+  position: absolute;
+  top: 50%;
+  height: calc(var(--s) * 210);
+  transform: translateY(-50%);
+}
+
+.spoon {
+  left: calc(50% - var(--s) * 262);
+}
+.fork-knife {
+  left: calc(50% + var(--s) * 200);
+}
+
+/* ----- blurry edges where the dishes slide out of view ----- */
+
+/* only as tall as the row of dishes, so the text above and below stays sharp */
+.menu-edge {
+  position: absolute;
+  top: -6%;
+  bottom: -6%;
+  z-index: 2;
+  width: 14vw;
+  pointer-events: none;
+  /* fades into whatever is underneath: the table on desktop, the runner on phones */
+  background: linear-gradient(
+    to right,
+    var(--edge-color, var(--light-blue)) 10%,
+    transparent
+  );
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  -webkit-mask-image: linear-gradient(to right, #000 30%, transparent);
+  mask-image: linear-gradient(to right, #000 30%, transparent);
+}
+
+.menu-edge-start {
+  left: -16px;
+} /* -16px: reach past the section's side padding */
+
+.menu-edge-end {
+  right: -16px;
+  transform: scaleX(-1); /* the same fade, mirrored */
 }
 
 .menu-kicker {
@@ -144,12 +246,12 @@
 }
 
 .service-bell {
+  z-index: 3; /* stays sharp, in front of the blurry edge */
   position: absolute;
   left: calc(50% + var(--plate) * 0.36);
   bottom: 2%;
   width: clamp(64px, 9vh, 96px);
   overflow: visible;
-  z-index: 2;
 }
 
 /* ----- what's on the plate ----- */
@@ -251,6 +353,7 @@
   z-index: 3;
   /* the same shape as the drawing at every screen width, so the tops of the clouds
      are never cut off (on phones it stays at least 150px tall and trims the sides instead) */
+  width: 100%; /* (without this, the minimum height below would stretch it wider than a phone screen) */
   aspect-ratio: 1440 / 410;
   min-height: 150px;
   /* sits below the hero (not on top of it), so it only appears once you scroll */
@@ -258,12 +361,83 @@
   pointer-events: none;
 }
 
-.cloud-divider svg {
+.cloud-divider .bank-layer {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   overflow: visible;
+}
+
+/* ----- where the table starts and ends (inside the dividers around the Menu) ----- */
+
+.cloud-divider.has-table {
+  overflow: visible; /* the chair and bowl can reach a little past the clouds */
+}
+
+.cloud-divider.has-table .bank-layer {
+  overflow: hidden; /* ...but the clouds themselves stay inside */
+}
+
+.divider-table {
+  position: absolute;
+  left: calc(50% - var(--runner) / 2);
+  width: var(--runner);
+}
+
+.table-piece {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  background: var(--sky-blue);
+  border: var(--table-edge) solid var(--brand-blue);
+}
+
+.divider-chair {
+  position: absolute;
+  left: 25%;
+  width: 50%;
+  height: auto;
+}
+
+/* the end of the table, just below the Menu: a short bit of table, rounded corners,
+   and a chair tucked under it (the clouds in front hide its legs) */
+.table-end .divider-table {
+  top: 0;
+  height: calc(var(--s) * 60);
+}
+
+.table-end .table-piece {
+  border-top: none;
+  border-radius: 0 0 calc(var(--s) * 28) calc(var(--s) * 28);
+}
+
+.table-end .divider-chair {
+  top: 55%;
+}
+
+/* the head of the table, just above the Menu: it rises out of the clouds,
+   with a chair turned to face it and the bowl of pasta on top */
+.table-start .divider-table {
+  top: 52%;
+  bottom: 0;
+}
+
+.table-start .table-piece {
+  border-bottom: none;
+  border-radius: calc(var(--s) * 28) calc(var(--s) * 28) 0 0;
+}
+
+.table-start .divider-chair {
+  bottom: calc(100% - var(--s) * 34);
+  rotate: 180deg; /* facing down, towards the table */
+}
+
+.divider-bowl {
+  position: absolute;
+  left: 7%;
+  top: calc(var(--s) * 26);
+  width: 40%;
 }
 
 /* the divider leaving the Menu has the Menu's pastel blue behind it */
@@ -275,6 +449,23 @@
   .star-4 {
     display: none;
   } /* no room beside the plate on a phone */
+  .cutlery,
+  .cup-1 {
+    display: none;
+  } /* no room beside the plate either */
+  :root {
+    --runner: calc(100vw - 12px);
+  } /* nearly full width, so the text sits inside the table */
+  .menu-edge {
+    width: 8vw;
+    --edge-color: var(--sky-blue);
+  }
+  .menu-edge-start {
+    left: 2px;
+  } /* start just inside the runner's blue border */
+  .menu-edge-end {
+    right: 2px;
+  }
   .star-1 {
     left: calc(50% - var(--plate) * 0.56);
     top: -2%;

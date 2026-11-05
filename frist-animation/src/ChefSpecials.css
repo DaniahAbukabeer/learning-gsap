@@ -2,7 +2,11 @@
 
 .chef {
   background: var(--page-bg);
-  padding: 150px 24px 120px; /* extra top room for the hat */
+  padding: 150px 0 0; /* extra top room for the hat */
+}
+
+.chef-inner {
+  padding: 0 24px;
 }
 
 .chef-inner {
@@ -17,7 +21,7 @@
   gap: 48px;
   align-items: center;
   max-width: 860px;
-  margin: 0 auto 70px;
+  margin: 0 auto 20px;
   text-align: start;
 }
 
@@ -84,9 +88,25 @@
 
 /* ----- the order rail and receipts ----- */
 
-.order-rail {
+/* one screen tall; it stays put while the rail slides sideways (see buildChefScroll) */
+.rail-stage {
+  --receipt: min(290px, 74vw); /* receipt width */
   position: relative;
-  padding-top: 10px;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* the long rail with every receipt on it; it reaches far past both edges of the screen */
+.rail-track {
+  position: absolute;
+  top: max(
+    100px,
+    calc(50vh - 330px)
+  ); /* the receipts sit in the middle of the screen */
+  inset-inline-start: 0;
+  /* room before the first receipt and after the last, so each one can reach the middle */
+  padding-inline: calc(50vw - var(--receipt) / 2);
+  will-change: transform;
 }
 
 /* the metal rail receipts hang from */
@@ -110,18 +130,14 @@
 .receipts {
   list-style: none;
   margin: 0;
-  padding: 0 12px;
-  display: grid;
-  grid-template-columns: repeat(
-    4,
-    minmax(0, 1fr)
-  ); /* four equal receipts that always fit */
-  gap: 26px;
-  align-items: start;
+  padding: 10px 0 0;
+  display: flex;
+  gap: 44px;
 }
 
 .receipt-slot {
   position: relative;
+  flex: 0 0 var(--receipt);
   padding-top: 14px;
   /* soft paper shadow (a shadow on the parent, because the receipt's torn edges are cut out) */
   filter: drop-shadow(5px 7px 0 rgba(107, 190, 255, 0.55));
@@ -141,8 +157,82 @@
   background: var(--light-blue);
 }
 
-/* the paper itself, with zig-zag torn edges top and bottom */
+/* once a receipt has been ripped off: a torn scrap stays under the clip */
+.receipt-stub {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  z-index: 1;
+  width: 70px;
+  height: 26px;
+  margin-left: -35px;
+  background: #fff;
+  /* torn bottom edge */
+  -webkit-mask:
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg)
+      bottom / 10px 51% repeat-x,
+    linear-gradient(#000 0 0) top / 100% 60% no-repeat;
+  mask:
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg)
+      bottom / 10px 51% repeat-x,
+    linear-gradient(#000 0 0) top / 100% 60% no-repeat;
+  opacity: 0;
+}
+
+.receipt-slot.is-ripped .receipt-stub {
+  opacity: 1;
+}
+.receipt-slot.is-ripped .receipt-swing {
+  visibility: hidden;
+}
+
 .receipt {
+  cursor: pointer;
+}
+
+.receipt:focus-visible {
+  outline: 3px solid var(--brand-blue);
+  outline-offset: 4px;
+}
+
+.rail-hint {
+  margin: 12px 0 0;
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--sky-blue);
+}
+
+/* shorter screens: shrink the receipts so they fit top to bottom */
+@media (max-height: 760px) {
+  .receipts {
+    zoom: 0.88;
+  }
+}
+@media (max-height: 660px) {
+  .receipts {
+    zoom: 0.76;
+  }
+}
+@media (max-height: 560px) {
+  .receipts {
+    zoom: 0.64;
+  }
+}
+
+/* the copy that flies off the rail when a receipt is ripped off */
+.receipt-flying {
+  position: fixed;
+  z-index: 120;
+  margin: 0;
+  box-sizing: border-box;
+  pointer-events: none;
+  transform-origin: 50% 0%;
+  filter: drop-shadow(8px 12px 0 rgba(107, 190, 255, 0.55));
+  transition: none; /* GSAP moves it; a CSS transition would fight it */
+}
+
+/* the paper itself, with zig-zag torn edges top and bottom */
+.receipt-paper {
   --zigzag: 14px;
   padding: 22px 18px 26px;
   background: #fff;
@@ -173,7 +263,7 @@
   transform: translateY(-6px) rotate(1.5deg);
 }
 
-.receipt p {
+.receipt-paper p {
   margin: 0;
 }
 
@@ -195,7 +285,7 @@
 /* dashed divider line */
 .receipt-rule {
   margin: 10px 0;
-  border-top: 2px dashed #9bc4f5;
+  border-top: 2px solid #9bc4f5;
 }
 
 .receipt-meta {
@@ -245,7 +335,7 @@
 }
 
 .receipt-title {
-  margin: 10px 0 8px;
+  margin: 8px 0 6px;
   font-family: var(--font-title);
   font-weight: normal;
   font-size: 22px;
@@ -259,7 +349,7 @@
   aspect-ratio: 4 / 3;
   margin-bottom: 10px;
   overflow: hidden;
-  border: 2px dashed #9bc4f5;
+  border: 2px solid #9bc4f5;
   border-radius: 6px;
   background: var(--page-bg);
   font-size: 12px;
@@ -276,6 +366,26 @@
   margin-bottom: 10px !important;
   font-family: var(--font-body);
   font-size: 14px;
+}
+
+.receipt-tech {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 6px 0 10px !important;
+}
+
+.receipt-tech span {
+  padding: 2px 8px;
+  border: 2px solid var(--sky-blue);
+  border-radius: 999px;
+  font-size: 12px;
+  color: var(--brand-blue);
+}
+
+.project-head .receipt-tech {
+  justify-content: center;
+  margin-top: 12px !important;
 }
 
 .receipt-total {
@@ -310,16 +420,15 @@
 
 /* ----- smaller screens ----- */
 
-@media (max-width: 960px) {
-  .receipts {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    row-gap: 40px;
-  }
-}
-
 @media (max-width: 760px) {
   .chef {
-    padding: 130px 16px 90px;
+    padding-top: 130px;
+  }
+  .chef-inner {
+    padding: 0 16px;
+  }
+  .receipts {
+    gap: 26px;
   }
 
   .chef-intro {
@@ -336,25 +445,231 @@
   .chef-text {
     margin: 0 auto;
   }
-
-  /* phones: receipts in a row you can swipe through */
-  .receipts {
-    display: flex;
-    gap: 22px;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    padding: 0 16px 20px;
-    margin: 0 -16px;
-  }
-
-  .receipt-slot {
-    flex: 0 0 78%;
-    scroll-snap-align: center;
-  }
 }
 
 /* Arabic letters are taller than Somelist's, so Arabic titles need more line height */
 :root[lang="ar"] .chef-title,
 :root[lang="ar"] .receipt-title {
+  line-height: 1.45;
+}
+
+/* ---------- A project's own page (opens over the site) ---------- */
+
+.project-page {
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 50px 20px 70px;
+  background: rgba(186, 226, 255, 0.72);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+:root[lang="ar"] .project-page * {
+  letter-spacing: 0 !important;
+}
+
+.project-paper {
+  --zigzag: 18px;
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 44px clamp(22px, 5vw, 56px) 50px;
+  font-size: 15px;
+  filter: drop-shadow(8px 12px 0 rgba(107, 190, 255, 0.55));
+}
+
+.project-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.btn-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px 8px 10px;
+  border: 2px solid var(--brand-blue);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--brand-blue);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.btn-link:hover,
+.btn-link:focus-visible {
+  background: var(--brand-blue);
+  color: #fff;
+  outline: none;
+}
+
+.btn-link svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+:root[dir="rtl"] .btn-link svg {
+  transform: scaleX(-1);
+}
+
+.project-order {
+  color: #6a7fa6;
+}
+
+.project-head {
+  text-align: center;
+}
+
+.project-dish {
+  margin-top: 6px !important;
+  color: #4a6896;
+}
+
+.project-title {
+  margin: 10px 0 6px;
+  font-family: var(--font-title);
+  font-weight: normal;
+  font-size: clamp(36px, 6vw, 60px);
+  line-height: 1.05;
+  color: var(--brand-blue);
+}
+
+.project-client {
+  color: #6a7fa6;
+}
+
+.project-line {
+  max-width: 520px;
+  margin: 12px auto 0 !important;
+  font-family: var(--font-body);
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+.project-hero,
+.project-shot {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 2px solid #9bc4f5;
+  border-radius: 8px;
+  background: var(--page-bg);
+  color: #6a7fa6;
+  font-size: 13px;
+}
+
+.project-hero {
+  aspect-ratio: 16 / 9;
+  margin: 26px 0 16px;
+}
+
+.project-hero img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.project-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+}
+
+.project-heading {
+  margin: 4px 0 8px;
+  font-family: var(--font-title);
+  font-weight: normal;
+  font-size: 24px;
+  color: var(--brand-blue);
+}
+
+.project-paper section p:not(.receipt-line) {
+  font-family: var(--font-body);
+  line-height: 1.6;
+}
+
+.project-results {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.project-results li {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px;
+  border: 2px solid #9bc4f5;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.project-results strong {
+  font-family: var(--font-title);
+  font-weight: normal;
+  font-size: 34px;
+  line-height: 1;
+  color: var(--brand-blue);
+}
+
+.project-results span {
+  font-size: 13px;
+  color: #4a6896;
+}
+
+.project-gallery {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin: 22px 0 10px;
+}
+
+.project-shot {
+  aspect-ratio: 4 / 3;
+}
+
+.project-actions .btn {
+  font-family: var(--font-body);
+}
+
+.project-actions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+@media (max-width: 640px) {
+  .project-page {
+    padding: 24px 10px 50px;
+  }
+  .project-columns,
+  .project-gallery {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .project-results {
+    grid-template-columns: 1fr;
+  }
+}
+
+:root[lang="ar"] .project-title,
+:root[lang="ar"] .project-heading {
   line-height: 1.45;
 }

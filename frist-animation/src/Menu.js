@@ -1,6 +1,6 @@
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { DISH_ART, PlateTop, ServiceBell, Star } from './MenuArt';
+import { DISH_ART, PlateTop, ServiceBell, Star, Cup, Spoon, ForkAndKnife } from './MenuArt';
 import { sfx } from './sfx';
 import { useLang, DISH_TEXT } from './i18n';
 import './Menu.css';
@@ -14,6 +14,13 @@ export default function Menu() {
     const text = DISH_TEXT[lang];
     return (
         <section className="menu" id="menu">
+            {/* the table, seen from above, with two glasses on it (it starts and ends in the clouds around this section) */}
+            <div className="table-top" aria-hidden="true">
+                <div className="table-runner"></div>
+                <Cup className="table-cup cup-1" />
+                <Cup className="table-cup cup-2" />
+            </div>
+
             <div className="menu-head">
                 <p className="menu-kicker">{t('menu.kicker')}</p>
                 <h2 className="menu-title">{t('menu.title')}</h2>
@@ -28,6 +35,8 @@ export default function Menu() {
                     <span className="menu-star star-3"><Star kind="four" /></span>
                     <span className="menu-star star-4"><Star kind="five" /></span>
                 </div>
+                <Spoon className="cutlery spoon" />
+                <ForkAndKnife className="cutlery fork-knife" />
                 <PlateTop />
                 <ul className="menu-track">
                     {DISHES.map((dish, i) => {
@@ -42,6 +51,10 @@ export default function Menu() {
                     })}
                 </ul>
                 <ServiceBell />
+
+                {/* soft blur on the left and right edges, where dishes slide out of view */}
+                <div className="menu-edge menu-edge-start" aria-hidden="true"></div>
+                <div className="menu-edge menu-edge-end" aria-hidden="true"></div>
             </div>
 
             {/* What's on the plate */}
@@ -86,7 +99,7 @@ const SCROLL_PER_DISH = 0.8; // screen-heights of scrolling to move one dish alo
 const BELL_DELAY = 180;      // ms a dish must stay on the plate before the bell rings
 
 // distance between dishes on the track (keep in sync with --gap in Menu.css)
-const dishGap = () => Math.min(380, window.innerWidth * 0.62);
+const dishGap = () => Math.min(470, window.innerWidth * 0.62); // wide enough to clear the cutlery
 
 export function buildMenuScroll(root, getSmoother) {
     const q = gsap.utils.selector(root);
@@ -162,7 +175,10 @@ export function buildMenuScroll(root, getSmoother) {
         gsap.fromTo(items[i].querySelectorAll('.art-line'), { drawSVG: '0%' },
             { drawSVG: '100%', duration: 0.6, stagger: 0.03, ease: 'power1.inOut', overwrite: true });
         gsap.to(items[i].querySelectorAll('.art-fill'), { autoAlpha: 1, duration: 0.35, delay: 0.45, stagger: 0.02, overwrite: true });
-        gsap.fromTo(dish, { y: 0 }, { keyframes: { y: [-22, 0] }, duration: 0.55, ease: 'power2.out', overwrite: 'auto' });
+        // ...set down onto the plate: it comes from a little above (bigger, as if closer to you),
+        // lands with a tiny bounce, and the plate gives a little nudge as it's set down
+        gsap.fromTo(dish, { y: -36, scale: 1.18 }, { y: 0, scale: 1, duration: 0.55, ease: 'back.out(1.7)', overwrite: 'auto' });
+        gsap.fromTo(q('.plate'), { scale: 1 }, { keyframes: { scale: [0.975, 1.01, 1] }, duration: 0.4, delay: 0.3, transformOrigin: '50% 50%', overwrite: 'auto' });
 
         // ding! (only once the dish has actually settled on the plate)
         clearTimeout(bellTimer);

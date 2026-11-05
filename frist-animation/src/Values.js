@@ -218,9 +218,11 @@ function buildStory(root) {
         const from = at(el, 0.95);                      // just coming in from the side
         return { from, duration: Math.max(at(el, 0.55) - from, 0.02) }; // settled by just past the middle
     };
-    // play a little sound when a piece settles (only when scrolling forwards)
-    const soundAt = (time, name, volume) => tl.call(() => {
-        if (tl.scrollTrigger?.direction === 1) sfx.soft(name, volume, 120);
+    // play a little sound when a piece settles (only when scrolling forwards).
+    // A list of names means "the first one you have": e.g. ['scribble', 'whoosh'] plays
+    // scribble.mp3 once you add it to public/sounds/, and the whoosh until then.
+    const soundAt = (time, name, volume, gap = 120, rate = 1) => tl.call(() => {
+        if (tl.scrollTrigger?.direction === 1) sfx.soft(name, volume, gap, rate);
     }, null, time);
 
     q('.piece').forEach((el) => {
@@ -228,6 +230,10 @@ function buildStory(root) {
         const v = { duration, immediateRender: true };
 
         if (el.classList.contains('word')) {
+            // every word lands with a little pop, each one a slightly different pitch
+            // (small words higher, so the sentence sort of "bounces" along)
+            const pitch = (el.classList.contains('low') ? 1.25 : 0.95) + Math.random() * 0.25;
+            soundAt(from + duration * 0.5, 'pop', 0.22, 50, pitch);
             const letters = el.querySelectorAll('.ch');
             if (letters.length) {
                 // letters drop in from below, a bit scattered, and brighten
@@ -251,14 +257,19 @@ function buildStory(root) {
                     { scale: 0, rotation: tilt - 30 },
                     { scale: 1, rotation: tilt, ease: 'back.out(2.2)', duration: duration * 0.6, immediateRender: true },
                     t0);
-                soundAt(t0 + duration * 0.3, 'pop', 0.3);
+                // big label: pop. little label stuck on top: a sticker slap
+                soundAt(t0 + duration * 0.3, k === 0 ? 'tape' : 'sticker', k === 0 ? 0.6 : 0.7);
             });
         } else if (el.classList.contains('doodle')) {
             const lines = el.querySelectorAll('.doodle-line, .art-line');
             const fills = el.querySelectorAll('.doodle-fill, .art-fill');
             if (el.classList.contains('doodle-drop')) {
                 tl.fromTo(el, { yPercent: -160, opacity: 0, scaleY: 1.3 }, { yPercent: 0, opacity: 1, scaleY: 1, ease: 'bounce.out', ...v }, from);
+                soundAt(from + duration * 0.45, 'drip', 0.6);
             } else {
+                const star = el.classList.contains('doodle-star5') || el.classList.contains('doodle-star4');
+                // stars: a bright ting as they spin in. drawn doodles: a quick scribble
+                soundAt(from + duration * 0.2, star ? 'popup' : ['scribble', 'whoosh'], star ? 0.6 : 0.2);
                 tl.fromTo(el, { rotation: -140, scale: 0.2 }, { rotation: 0, scale: 1, ease: 'back.out(1.8)', ...v }, from);
                 if (lines.length) tl.fromTo(lines, { drawSVG: '0%' }, { drawSVG: '100%', ...v }, from);
                 if (fills.length) tl.fromTo(fills, { opacity: 0 }, { opacity: 1, duration: duration * 0.4, immediateRender: true }, from + duration * 0.6);
