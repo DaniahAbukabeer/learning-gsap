@@ -6,7 +6,7 @@ import { createContext, useContext } from 'react';
 
 export const STRINGS = {
     en: {
-        'lang.button': 'AR',
+        'lang.button': 'ع',
         'lang.label': 'التبديل إلى العربية (Switch to Arabic)',
         'progress.label': 'Your way through the page',
 
